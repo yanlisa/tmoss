@@ -1,0 +1,137 @@
+<%inherit file="base.html"/>
+<%block name="title">MOSS Report: ${"%s: " % desc if desc else ""|h}${", ".join(s.name for s in submits)|h}</%block>
+<%block name="head">
+<script type="text/javascript"><%include file="jquery-1.11.3.min.js"/></script>
+<style type="text/css">
+    * { -webkit-box-sizing: border-box; box-sizing: border-box }
+    html, body { margin: 0; padding: 0 }
+    .column { overflow-y: auto; position: relative; width: 50% }
+    .content { display: flex; display: -ms-flexbox; display: -webkit-box; display: -webkit-flex;
+               height: 100vh; position: relative; width: 100%;
+               margin-top: -12rem; padding-top: 12rem; z-index: 1 }
+    .header { height: 12rem; padding-top: 1rem; position: relative; text-align: center; width: 100%; z-index: 2 }
+    .regions { background-color: #eee; margin: 0 auto; }
+    .regions a { color: inherit }
+    .regions td { padding: 2px }
+    .summary { background-color: #eee; margin: 0 auto; text-align: center; width: 80% }
+
+    .code { font-size: 10pt; padding-left: 0.5rem; }
+    .code .bp { color: #008000 } /* Name.Builtin.Pseudo */
+    .code .c { color: #408080; font-style: italic } /* Comment */
+    .code .c1 { color: #408080; font-style: italic } /* Comment.Single */
+    .code .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+    .code .cp { color: #BC7A00 } /* Comment.Preproc */
+    .code .cs { color: #408080; font-style: italic } /* Comment.Special */
+    .code .err { border: 1px solid #FF0000 } /* Error */
+    .code .gd { color: #A00000 } /* Generic.Deleted */
+    .code .ge { font-style: italic } /* Generic.Emph */
+    .code .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+    .code .gi { color: #00A000 } /* Generic.Inserted */
+    .code .go { color: #888888 } /* Generic.Output */
+    .code .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+    .code .gr { color: #FF0000 } /* Generic.Error */
+    .code .gs { font-weight: bold } /* Generic.Strong */
+    .code .gt { color: #0044DD } /* Generic.Traceback */
+    .code .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+    .code .il { color: #666666 } /* Literal.Number.Integer.Long */
+    .code .k { color: #008000; font-weight: bold } /* Keyword */
+    .code .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+    .code .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+    .code .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+    .code .kp { color: #008000 } /* Keyword.Pseudo */
+    .code .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+    .code .kt { color: #B00040 } /* Keyword.Type */
+    .code .m { color: #666666 } /* Literal.Number */
+    .code .mb { color: #666666 } /* Literal.Number.Bin */
+    .code .mf { color: #666666 } /* Literal.Number.Float */
+    .code .mh { color: #666666 } /* Literal.Number.Hex */
+    .code .mi { color: #666666 } /* Literal.Number.Integer */
+    .code .mo { color: #666666 } /* Literal.Number.Oct */
+    .code .na { color: #7D9029 } /* Name.Attribute */
+    .code .nb { color: #008000 } /* Name.Builtin */
+    .code .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+    .code .nd { color: #AA22FF } /* Name.Decorator */
+    .code .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+    .code .nf { color: #0000FF } /* Name.Function */
+    .code .ni { color: #999999; font-weight: bold } /* Name.Entity */
+    .code .nl { color: #A0A000 } /* Name.Label */
+    .code .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+    .code .no { color: #880000 } /* Name.Constant */
+    .code .nt { color: #008000; font-weight: bold } /* Name.Tag */
+    .code .nv { color: #19177C } /* Name.Variable */
+    .code .o { color: #666666 } /* Operator */
+    .code .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+    .code .s { color: #BA2121 } /* Literal.String */
+    .code .s1 { color: #BA2121 } /* Literal.String.Single */
+    .code .s2 { color: #BA2121 } /* Literal.String.Double */
+    .code .sb { color: #BA2121 } /* Literal.String.Backtick */
+    .code .sc { color: #BA2121 } /* Literal.String.Char */
+    .code .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+    .code .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+    .code .sh { color: #BA2121 } /* Literal.String.Heredoc */
+    .code .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+    .code .sr { color: #BB6688 } /* Literal.String.Regex */
+    .code .ss { color: #19177C } /* Literal.String.Symbol */
+    .code .sx { color: #008000 } /* Literal.String.Other */
+    .code .vc { color: #19177C } /* Name.Variable.Class */
+    .code .vg { color: #19177C } /* Name.Variable.Global */
+    .code .vi { color: #19177C } /* Name.Variable.Instance */
+    .code .w { color: #bbbbbb } /* Text.Whitespace */
+
+    .common { background-color: #ddd }
+    .hl0 { background-color: #fcc }
+    .hl1 { background-color: #fec }
+    .hl2 { background-color: #ffc }
+    .hl3 { background-color: #cfc }
+    .hl4 { background-color: #cff }
+    .hl5 { background-color: #ccf }
+    .hl6 { background-color: #fcf }
+</style>
+<script type="text/javascript">
+$(function() {
+    $(".regions a").click(function() {
+        var region = $(this).data("region");
+        for (var i = 0; i < 2; i++) {
+            var file = $("#file" + i);
+            var target = $("#region" + i + "_" + region);
+            file.scrollTop(file.scrollTop() + target.position().top);
+        }
+        return false;
+    });
+});
+</script>
+</%block>
+    <div class="header">
+        <table class="summary"><tr>
+            <th>${submits[0].name|h}:</th>
+            <th>Match:</th>
+            <th>${submits[1].name|h}:</th>
+        </tr><tr>
+            <td>${percent[0]}</td>
+            <td>${tokens.match} (+ ${tokens.common} common)</td>
+            <td>${percent[1]}</td>
+        </tr></table>
+<%def name="regions(tag, fn)">
+        % for i, m in enumerate(match):
+            <${tag} class="hl${i % NUM_COLORS}"><a href="#" data-region="${i}">${fn(m)}</a></${tag}>
+        % endfor
+</%def>
+        <table class="regions"><tr>
+            <th colspan="${len(match) + 1}">Matching regions</th>
+        </tr><tr>
+            <th># Tokens</th>
+            ${regions("th", lambda m: m[2])}
+        </tr><tr>
+            <th>${submits[0].name|h}</th>
+            ${regions("td", lambda m: "%d-%d" % m[0])}
+        </tr><tr>
+            <th>${submits[1].name|h}</th>
+            ${regions("td", lambda m: "%d-%d" % m[1])}
+        </tr></table>
+    </div>
+    <div class="content">
+    % for i, f in enumerate(files):
+        <div class="column" id="file${i}">${f}</div>
+    % endfor
+    </div>
+## vim: et sw=4 ts=4

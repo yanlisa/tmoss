@@ -1,0 +1,42 @@
+<%inherit file="base.html"/>
+<%block name="title">MOSS Results${": %s" % desc if desc else ""|h}</%block>
+<%block name="style"><style type="text/css">
+    a { color: #0f0 }
+    .match { width: 15% }
+    .name0, .name1 { width: 25% }
+    .percent0, .percent1 { width: 10% }
+    .rank { width: 5% }
+    .table { width: 40rem }
+
+    td.match, td.rank { text-align: center }
+    td.name0 { text-align: right }
+    td.name1 { text-align: left }
+</style></%block>
+<%def name="table(data)">
+    <table class="table">
+        <tr>
+            <th class="rank">Rank</th>
+            <th class="name0">&nbsp;</th>
+            <th class="percent0">&nbsp;</th>
+            <th class="match">Tokens Matched</th>
+            <th class="percent1">&nbsp;</th>
+            <th class="name1">&nbsp;</th>
+        </tr>
+    % for i, p in data:
+        <tr>
+            <td class="rank">${i}</th>
+            <td class="name0"><a href="report${i}.html">${p.submits[0].name|h}</a></td>
+            <td class="percent0">${p.percent[0]}</td>
+            <td class="match">${p.tokens.match}</td>
+            <td class="percent0">${p.percent[1]}</td>
+            <td class="name1"><a href="report${i}.html">${p.submits[1].name|h}</a></td>
+        </tr>
+    % endfor
+    </table>
+</%def>
+    <h1>${self.title()}</h1>
+    <p><strong>Note:</strong> Gray-colored regions are code which matches the starter code or appeared more than ${threshold} times. Other colored regions match the closest region in the other submission that is the same color.</p>
+${table(pairs)}
+    <h3>Matches with self</h3>
+${table(pairs_self)}
+## vim: et sw=4 ts=4
