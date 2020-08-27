@@ -105,5 +105,5 @@ L. Yan, N. McKeown, M. Sahami, and C. Piech, “TMOSS: Using Intermediate Assign
 
 [ACM library link](https://doi.org/10.1145/3159450.3159490)
 
-Our paper is also available at [this link](http://stanford.edu/~yanlisa/publications/sigcse18.pdf).
+Our paper is also available at [this link](http://stanford.edu/~yanlisa/publications/sigcse18_tmoss.pdf).
 
